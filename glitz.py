@@ -1,4 +1,4 @@
-import json, os
+import json, os, re
 from os import chmod
 from Crypto.PublicKey import RSA
 
@@ -14,14 +14,11 @@ class Glitz():
         self.ssh_path = os.path.expanduser('~/.ssh')
         self.config_path = self.ssh_path + '/glitz.conf'
         if os.path.exists(self.config_path):
-            print('Welcome back to Glitz!')
             with open(self.config_path, 'r') as f:
                 self.config = json.loads(f.read())
-        else:
-            self.setup()
-        
-        self.menu()
 
+    def accounts(self):
+        return self.config['accounts'].items()
 
     def menu(self):
         while True:
@@ -105,6 +102,20 @@ class Glitz():
         self.config['accounts'][name] = {'platform': platform}
         self.saveConfig()
 
+    def switchAccount(self, name):
+        conf_f_name = '{base}/config_b'.format(base=self.ssh_path)
+
+        with open(conf_f_name, "r") as f:
+            lines = f.readlines()
+        with open(conf_f_name, "w") as f:
+            for line in lines:
+                if "###" in line:
+                    active_name = re.search('###(.*)-Glitz', line)
+                    f.write(f"Host github.com-{active_name} #{active_name}-Glitz")
+                elif f"Host github.com-{name} #{name}-Glitz" not in line.strip("\n"):
+                    f.write(line)
+                else:
+                    f.write(f"Host github.com ###{name}-Glitz")
 
     def removeAccount(self):
         print('Your current git accounts created by Glitz are:')
@@ -122,7 +133,7 @@ class Glitz():
                 for fn in files:
                    os.remove(fn)
             
-                conf_f_name = '{base}/config'.format(base=self.ssh_path)
+                conf_f_name = '{base}/config_b'.format(base=self.ssh_path)
 
                 with open(conf_f_name, "r") as f:
                     lines = f.readlines()
@@ -141,6 +152,3 @@ class Glitz():
             self.removeAccount()
 
         return
-
-if __name__ == "__main__":
-    app = Glitz()
