@@ -75,7 +75,7 @@ class Glitz():
             content_file.write(pubkey.exportKey('OpenSSH'))
 
     def addAccountToGitConfig(self, name, platform):
-        f_name = '{base}/config_b'.format(base=self.ssh_path)
+        f_name = '{base}/config'.format(base=self.ssh_path)
         config_data = "\n\n#Added by Glitz, #{name}-Glitz \nHost {platform}-{name} #{name}-Glitz\n\tHostName {platform} #{name}-Glitz\n\tUser git #{name}-Glitz\n\tIdentityFile {base}/{name}.key #{name}-Glitz".format(name=name, platform=platform, base=self.ssh_path)
         if os.path.exists(f_name):
             with open(f_name, 'a+') as f:
@@ -122,7 +122,7 @@ class Glitz():
                 for fn in files:
                    os.remove(fn)
             
-                conf_f_name = '{base}/config_b'.format(base=self.ssh_path)
+                conf_f_name = '{base}/config'.format(base=self.ssh_path)
 
                 with open(conf_f_name, "r") as f:
                     lines = f.readlines()
