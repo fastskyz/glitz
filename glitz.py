@@ -2,46 +2,22 @@ import json, os, re
 from os import chmod
 from Crypto.PublicKey import RSA
 
-def clear():
-    os.system('clear')
 
 class Glitz():
     def __init__(self):
         #if os.geteuid() != 0:
             #print("Please run Glitz with root permissions.")
 
-        clear()
         self.ssh_path = os.path.expanduser('~/.ssh')
         self.config_path = self.ssh_path + '/glitz.conf'
         if os.path.exists(self.config_path):
             with open(self.config_path, 'r') as f:
                 self.config = json.loads(f.read())
 
+        self.active_account = self.getActiveAccount()
+
     def accounts(self):
         return self.config['accounts'].items()
-
-    def menu(self):
-        while True:
-            print('1:\tAdd account\n2:\tRemove account\n0:\tExit')
-            choice = input('> ')
-            if choice == '1':
-                clear()
-                self.addAccount()
-            elif choice == '2':
-                clear()
-                self.removeAccount()
-            elif choice == '3':
-                clear()
-                input('Hi there code explorer! This option is coming soon!\n')
-                #self.activateAccount()
-            elif choice == '0':
-                clear()
-                print('Bye!')
-                exit()
-            else:
-                clear()
-                input('Please enter number from the list above.\n')
-
 
     def saveConfig(self):
         with open(self.config_path, 'w+') as f:
@@ -72,7 +48,7 @@ class Glitz():
             content_file.write(pubkey.exportKey('OpenSSH'))
 
     def addAccountToGitConfig(self, name, platform):
-        f_name = '{base}/config'.format(base=self.ssh_path)
+        f_name = '{base}config_b'.format(base=self.ssh_path)
         config_data = "\n\n#Added by Glitz, #{name}-Glitz \nHost {platform}-{name} #{name}-Glitz\n\tHostName {platform} #{name}-Glitz\n\tUser git #{name}-Glitz\n\tIdentityFile {base}/{name}.key #{name}-Glitz".format(name=name, platform=platform, base=self.ssh_path)
         if os.path.exists(f_name):
             with open(f_name, 'a+') as f:
@@ -90,7 +66,6 @@ class Glitz():
         platform = 'github.com'
         self.generateKeypair(name)
         os.system('pbcopy < {name}.pub'.format(name=name))
-        clear()
         print('SSH Key generated and copied. Add it to the desired git account now.')
         input('Press enter when you are done.')
         #self.addToAgent(name)
@@ -101,6 +76,18 @@ class Glitz():
         # save data in config file
         self.config['accounts'][name] = {'platform': platform}
         self.saveConfig()
+
+    def getActiveAccount(self):
+        conf_f_name = '{base}/config_b'.format(base=self.ssh_path)
+
+        with open(conf_f_name, "r") as f:
+            lines = f.readlines()
+
+        for line in lines:
+            if '###' in line:
+                name = re.search('###(.*)-Glitz', line)
+                return name.group()
+                
 
     def switchAccount(self, name):
         conf_f_name = '{base}/config_b'.format(base=self.ssh_path)
